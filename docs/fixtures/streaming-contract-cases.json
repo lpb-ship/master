@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "status": "synthetic proposal; not provider evidence or API payloads",
+  "conventions": {
+    "defaultOwner": "user_a",
+    "defaultProvider": "fixture_provider_a",
+    "defaultAccount": "account_a",
+    "defaultScope": { "kind": "profile", "key": "profile_a" },
+    "sourceIds": "eventKey values are verified stable within owner/provider/account/scope unless explicitly null",
+    "catalog": "catalogRef denotes a synthetic verified crosswalk, not a real catalog identifier",
+    "rows": "rows are processed in order; repeated eventKey means replay or correction, not an extra occurrence",
+    "expected": "counts describe final stored viewing events; quarantine and observations are counted separately"
+  },
+  "cases": [
+    {
+      "id": "F01", "name": "Movie replay across runs",
+      "rows": [
+        { "eventKey": "e1", "catalogRef": "catalog:movie:1", "occurredAt": "2026-10-01T20:00:00Z", "run": "r1" },
+        { "eventKey": "e1", "catalogRef": "catalog:movie:1", "occurredAt": "2026-10-01T20:00:00Z", "run": "r2" }
+      ],
+      "expected": { "events": 1, "stableEventId": true, "matchState": "matched", "replayCreatesEvent": false, "provenanceRunReferences": ["r1", "r2"] }
+    },
+    {
+      "id": "F02", "name": "Episode with verified series and episode crosswalk",
+      "rows": [
+        { "eventKey": "e2", "mediaKind": "episode", "seriesRef": "catalog:series:1", "catalogRef": "catalog:episode:7", "season": 0, "episode": 1 },
+        { "eventKey": "e2", "mediaKind": "episode", "seriesRef": "catalog:series:1", "catalogRef": "catalog:episode:7", "season": 0, "episode": 1 }
+      ],
+      "expected": { "events": 1, "mediaKind": "episode", "matchState": "matched", "specialPreserved": true }
+    },
+    {
+      "id": "F03", "name": "Separate repeat watches",
+      "rows": [
+        { "eventKey": "e3", "catalogRef": "catalog:movie:1", "occurredAt": "2026-10-01T20:00:00Z" },
+        { "eventKey": "e4", "catalogRef": "catalog:movie:1", "occurredAt": "2026-10-02T20:00:00Z" }
+      ],
+      "expected": { "events": 2, "distinctEventIds": true, "duplicateState": "distinct" }
+    },
+    {
+      "id": "F04", "name": "Timestamp corrected on same source event",
+      "rows": [
+        { "eventKey": "e5", "revision": 1, "occurredAt": null },
+        { "eventKey": "e5", "revision": 2, "occurredAt": "2026-10-01T20:00:00Z" }
+      ],
+      "sourceRevisionOrderingVerified": true,
+      "expected": { "events": 1, "stableEventId": true, "occurredAt": "2026-10-01T20:00:00Z", "preserveProvenanceRevision": true }
+    },
+    {
+      "id": "F05", "name": "Ambiguous remake title",
+      "rows": [{ "eventKey": "e6", "title": "The Return", "year": null, "candidates": ["catalog:movie:2", "catalog:movie:3"] }],
+      "expected": { "events": 1, "matchState": "ambiguous", "catalogRef": null, "visibleToOwner": true }
+    },
+    {
+      "id": "F06", "name": "Date-only event",
+      "rows": [{ "eventKey": "e7", "sourceLocalDate": "2026-10-01", "timezone": null }],
+      "expected": { "events": 1, "occurredAt": null, "timePrecision": "date", "sourceLocalDate": "2026-10-01", "fabricateMidnight": false }
+    },
+    {
+      "id": "F07", "name": "Stable identity with missing watch timestamp",
+      "rows": [{ "eventKey": "e8", "occurredAt": null, "retrievedAt": "2026-10-02T00:00:00Z" }],
+      "expected": { "events": 1, "occurredAt": null, "timePrecision": "unknown", "sortGroup": "undated" }
+    },
+    {
+      "id": "F08", "name": "No occurrence identity or stable row locator",
+      "rows": [{ "eventKey": null, "title": "The Return", "occurredAt": null, "artifact": null, "rowLocator": null }],
+      "expected": { "events": 0, "quarantined": 1, "reason": "SOURCE_IDENTITY_UNRESOLVED", "normalizationComplete": false }
+    },
+    {
+      "id": "F09", "name": "Cross-provider title and time overlap is not proof",
+      "rows": [
+        { "provider": "fixture_provider_a", "eventKey": "e9", "catalogRef": "catalog:movie:1", "occurredAt": "2026-10-01T20:00:00Z" },
+        { "provider": "fixture_provider_b", "eventKey": "e10", "catalogRef": "catalog:movie:1", "occurredAt": "2026-10-01T20:00:00Z" }
+      ],
+      "expected": { "events": 2, "duplicateState": "unresolved", "overlapGroups": 1, "automaticMerge": false }
+    },
+    {
+      "id": "F10", "name": "Identical source IDs across ownership and scope boundaries",
+      "rows": [
+        { "owner": "user_a", "account": "account_a", "profile": "profile_a", "eventKey": "same" },
+        { "owner": "user_b", "account": "account_a", "profile": "profile_a", "eventKey": "same" },
+        { "owner": "user_a", "account": "account_b", "profile": "profile_a", "eventKey": "same" },
+        { "owner": "user_a", "account": "account_a", "profile": "profile_b", "eventKey": "same" }
+      ],
+      "expected": { "events": 4, "eventsVisibleToUserA": 3, "eventsVisibleToUserB": 1, "crossScopeMerge": false }
+    },
+    {
+      "id": "F11", "name": "Identical artifact rows remain distinct; replay is safe",
+      "rows": [
+        { "eventKey": null, "artifact": "digest_a", "rowLocator": 1, "title": "The Return" },
+        { "eventKey": null, "artifact": "digest_a", "rowLocator": 2, "title": "The Return" },
+        { "eventKey": null, "artifact": "digest_a", "rowLocator": 1, "title": "The Return" }
+      ],
+      "expected": { "events": 2, "identityQuality": "artifact_local", "replayCreatesEvent": false, "identicalRowsCollapsed": false }
+    },
+    {
+      "id": "F12", "name": "Connection success does not establish subscription",
+      "observations": [
+        { "connectionState": "connected", "subscriptionEvidence": null, "capability": "unverified", "expectedState": "unknown" },
+        { "connectionState": "connected", "subscriptionEvidence": null, "capability": "unavailable", "expectedState": "unavailable" },
+        { "connectionState": "connected", "subscriptionEvidence": "explicit_inactive", "capability": "available", "expectedState": "inactive" },
+        { "connectionState": "action_required", "subscriptionEvidence": "expired_active_observation", "capability": "available", "expectedState": "unknown" }
+      ],
+      "expected": { "inferPaidFromAuthorization": false, "unavailableOptionalFieldsAreNull": true }
+    },
+    {
+      "id": "F13", "name": "Account-only history cannot identify household viewer",
+      "scope": { "kind": "account", "profileKey": null, "acknowledged": true },
+      "rows": [{ "eventKey": "e13", "catalogRef": "catalog:movie:1" }],
+      "expected": { "events": 1, "attribution": "account_activity_viewer_unknown", "providerProfileKey": null, "createsFoundationProfile": false }
+    },
+    {
+      "id": "F14", "name": "Disconnect between fetch and commit",
+      "steps": ["fetch with authorizationGeneration 1", "disconnect increments generation to 2", "attempt commit with generation 1", "deliver late authorization callback for generation 1"],
+      "expected": { "newEvents": 0, "runState": "canceled", "connectionState": "disconnected", "credentialsAccessible": false, "historyRetention": "governed_by_SUR_18" }
+    },
+    {
+      "id": "F15", "name": "Series name without episode evidence",
+      "rows": [{ "eventKey": "e15", "title": "Synthetic Series", "seriesRef": "catalog:series:1", "episode": null }],
+      "expected": { "events": 1, "matchState": "unmatched", "catalogRef": null, "inventEpisode": false }
+    },
+    {
+      "id": "F16", "name": "Interrupted pagination and overlapping retry",
+      "steps": ["commit page 1: eventKeys p1 and p2", "page 2 fails", "resume page 2: eventKeys p2 and p3", "replay completed run"],
+      "expected": { "eventsAfterFailure": 2, "stateAfterFailure": "partial", "advanceLastSuccessOnFailure": false, "eventsAfterRecovery": 3, "replayCreatesEvent": false }
+    },
+    {
+      "id": "F17", "name": "Verified cross-provider shared origin",
+      "sharedOriginMappingVerified": true,
+      "rows": [
+        { "provider": "fixture_provider_a", "eventKey": "e17a", "originNamespace": "fixture_origin", "originEvent": "origin_1" },
+        { "provider": "fixture_provider_b", "eventKey": "e17b", "originNamespace": "fixture_origin", "originEvent": "origin_1" }
+      ],
+      "expected": { "events": 1, "sourceObservations": 2, "duplicateState": "confirmed_same_event", "preserveBothProviders": true }
+    },
+    {
+      "id": "F18", "name": "Local datetime without offset or disambiguation",
+      "rows": [{ "eventKey": "e18", "sourceTime": "2026-11-01T01:30:00", "timezone": null }],
+      "expected": { "events": 1, "occurredAt": null, "sourceLocalDate": "2026-11-01", "timePrecision": "date", "guessOffset": false }
+    },
+    {
+      "id": "F19", "name": "Overlapping changed artifact with no stable event ID",
+      "rows": [
+        { "eventKey": null, "artifact": "digest_b", "rowLocator": 1, "title": "The Return", "sourceLocalDate": "2026-10-01" },
+        { "eventKey": null, "artifact": "digest_c", "rowLocator": 2, "title": "The Return", "sourceLocalDate": "2026-10-01" }
+      ],
+      "expected": { "events": 2, "duplicateState": "unresolved", "confirmedUniqueWatches": null, "automaticMerge": false }
+    },
+    {
+      "id": "F20", "name": "Same title and coarse time with distinct stable IDs",
+      "rows": [
+        { "eventKey": "e20a", "catalogRef": "catalog:movie:1", "sourceLocalDate": "2026-10-01" },
+        { "eventKey": "e20b", "catalogRef": "catalog:movie:1", "sourceLocalDate": "2026-10-01" }
+      ],
+      "expected": { "events": 2, "distinctEventIds": true, "automaticMerge": false }
+    }
+  ]
+}
