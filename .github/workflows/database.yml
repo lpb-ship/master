@@ -1,0 +1,24 @@
+name: Database baseline
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'scripts/migrate.py'
+      - 'tests/database/**'
+      - '.github/workflows/database.yml'
+  push:
+    branches: [main, master]
+    paths:
+      - 'supabase/migrations/**'
+      - 'scripts/migrate.py'
+      - 'tests/database/**'
+      - '.github/workflows/database.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/database/verify.py
