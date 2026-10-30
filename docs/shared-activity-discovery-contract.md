@@ -1,0 +1,122 @@
+# Shared-activity visibility and derived-data revocation
+
+Status: **proposed v0.1 — agreement and implementation evidence pending**. Updated: 2026-10-30.
+Source: [SUR-55](https://linear.app/lb-sandbox/issue/SUR-55). Accountable coordinator: **Logan Barragan**, current issue assignee; named domain reviewers and implementers remain to be confirmed.
+
+## Scope and authority
+
+This contract governs discovery's consumption of explicitly shared friend activity, including candidate selection, ranking, explanations, caches and telemetry. It does not build friendship, publication, permission or streaming systems. Operation names and fields below are proposed transport-neutral interfaces, not existing endpoints. “Must” describes requirements after approval; numeric limits are proposals to ratify before implementation commitments. No agreement, deployed capability or passing runtime test is claimed.
+
+Reuse [account/profile contracts](account-profile-contracts.md) for server-derived identity and separate viewer-authorized projections, and [foundation data handling](quality-gates-and-data-handling.md#data-obligations-and-retention-decisions) for processor review, deletion, diagnostics, backups and release authority. [SUR-18](https://linear.app/lb-sandbox/issue/SUR-18) owns streaming consent, source retention and disconnect/deletion policy; its draft proposal was reviewed in GitHub pull request #8 on 2026-10-30 and is not approved or present on this branch. [SUR-26](https://linear.app/lb-sandbox/issue/SUR-26) owns streaming enforcement evidence and currently reports missing implementation and approval prerequisites. Neither establishes permission to use a friend's activity for discovery.
+
+Carry forward SUR-18/SUR-26 constraints: import authorization is not sharing consent; history is private absent explicit approved sharing; removed source contributions cannot survive in derived records; retries and restores cannot resurrect deleted data; logs and backups follow approved limits. The proposed delete-on-disconnect policy applies to dependent publications if adopted; independent manual publications survive only if upstream proves independent provenance and current permission. A stricter approved source/legal deadline prevails. Conflicting or unresolved policies block social launch rather than silently selecting a permissive interpretation.
+
+## Visibility before influence
+
+The trusted session supplies the viewer's `appUserId`. Discovery may consume a publication only when the authoritative service confirms all of: active viewer/owner accounts, a current eligible friend relationship, explicit publication to an audience including this viewer, permission for the **discovery ranking and explanation purpose**, and no applicable hide, block, deletion, withdrawal or source restriction. Being friends, knowing an ID, seeing a profile, importing a title or sharing to a different surface is insufficient. If the sharing grant does not yet specify discovery use, permission is absent.
+
+Enforce authorization **before** candidate generation, filtering, counts, scoring, tie-breaking, diversity, explanations or feature computation. Service credentials do not replace viewer checks. Do not read private history and filter only the final cards. Unavailable, missing, expired, ambiguous or unsupported authorization means no social input. Unknown policy versions and partially failed batches fail closed for the affected scope; if that scope cannot be isolated, discard the entire social computation.
+
+When nothing is permitted, use the existing non-social discovery path with independently authorized subscription/taste/catalog inputs. Do not claim that a friend watched something, that no friends shared, or that a specific friend revoked permission. A generic non-personal fallback is sufficient. With the same non-social inputs and deterministic seed, adding or changing inaccessible activity must leave candidates, order, scores, counts, explanations and response metadata unchanged. Do not encode denial details in client errors, pagination tokens or diagnostics.
+
+Revalidate all social dependencies at the response/cache-publication boundary. The upstream contract must define an authorization linearization point ordered with permission mutations: a response authorized after a revocation commit cannot use the revoked contribution. A check followed by an unguarded response write is insufficient. Use an upstream-supported fence/transaction or equivalent proven protocol; a timestamp or TTL alone is not proof of current permission. A concurrent response authorized before revocation is treated as already delivered and subject to the client clearing limit below. If freshness/fencing cannot be established, return a newly computed non-social result.
+
+## Minimal consumer interface
+
+Discovery receives only an allowlisted projection after authorization. All identifiers below are opaque internal references; clients do not choose the viewer, forge versions or supply their own authorization receipt.
+
+| Proposed operation | Required semantics |
+| --- | --- |
+| `readPermittedDiscoveryActivity(viewerContext, cursor)` | Returns only eligible publications plus an authoritative snapshot/fence and cursor bound to viewer, purpose and permission epoch. No denied-record list, private totals or owner history. An empty authorized result and unavailable permission both lead to non-social fallback, with only safe internal outcome codes. |
+| `validateDiscoveryDependencies(viewerContext, dependencies, expectedEpoch)` | Authoritatively validates current account, relationship, publication, source and policy state for every dependency; participates in the response fence above. Denial or version conflict discards affected derivations and recomputes; no partial stale response. |
+| `consumeVisibilityChanges(cursor)` | Durable authenticated change stream covering permission reductions, publication edits/removal, relationship/account changes and source deletion. Provides replay, ordering/version rules, gap detection and a reconciliation snapshot. A missing stream capability is a blocker, not permission to poll forever. |
+| `acknowledgeInvalidation(eventId, consumer, stage)` | Durable idempotent receipts for access denial, live purge/recompute and any processor cleanup. Includes safe timestamps/status and oldest pending work; enqueue acknowledgement alone is not completion. |
+
+| Permitted field / signal | Purpose and restriction |
+| --- | --- |
+| `publicationId`, `publicationVersion`, internal owner reference | Authorization, deduplication and deletion lineage only; never expose provider IDs or use owner identity as an unapproved ranking feature. |
+| Confirmed canonical `titleId` and media kind | Match an explicitly shared title to the discovery catalog. Unresolved identity is excluded; do not infer from raw provider history. |
+| Allowlisted publication kind: `watching`, `finished`, `recommendation` | At most one contribution per authorized friend/title; no play counts, duration, completion percentage, exact watch time or inferred preference strength. Final enum mapping and weights need V1 approval. |
+| Viewer/purpose binding, permission epoch, relationship/publication/source generations, policy version | Verify current permission and prevent cross-viewer reuse or replay. Expiry bounds storage only; it does not authorize stale reads. |
+| Opaque source/deletion dependencies | Allow invalidation without copying source history, provider account details or connection metadata. Retain internally with the derived artifact. |
+
+First-release explanations may use an authorized friend count for a title, computed from the same permitted set as ranking. Named attribution requires a separately authorized current profile projection and approved wording; otherwise omit names. No free-text publication bodies, private ratings, provider/subscription identity, raw history, exact activity timestamps, social graph export or inferred private activity enters discovery. No social signals enter global popularity, shared embeddings, model training, third-party ranking services or cross-viewer personalization in this proposal. Any such use needs a new purpose/retention/deletion review before collection.
+
+## Changes, ordering and revocation
+
+[SUR-28](https://linear.app/lb-sandbox/issue/SUR-28) owns sharing semantics; [SUR-29](https://linear.app/lb-sandbox/issue/SUR-29) inventories consumers and ownership; [SUR-39](https://linear.app/lb-sandbox/issue/SUR-39) owns explicit publication lifecycle. Discovery must consume their approved decisions rather than invent audience rules.
+
+| Trigger | Discovery obligation |
+| --- | --- |
+| Audience narrowed, discovery consent withdrawn, title hidden, publication revoked/deleted | Deny the affected scope and invalidate every dependent candidate set, ranking, explanation, count and cache; recompute using surviving authorized contributions only. |
+| Friend removal or block, viewer/owner restriction or account deletion | Deny the affected relationship/account scope, including already cached results and ongoing jobs. A block overrides an older allow. |
+| Publication edited or canonical identity corrected | Invalidate the old version and all dependent outputs; admit the replacement only after current permission and identity validation. |
+| Import consent withdrawn, provider revocation, disconnect or source-history deletion | Apply approved SUR-18 source restrictions to every dependent publication and derived output. Missing provenance means exclude the uncertain contribution. |
+| Pause/resume, historical sharing, title unhide, reconnect or refriend | Apply upstream's explicit approved scope. Never interpret resume, reconnect or renewed friendship as restoring old grants, backfilling private history or cancelling prior deletion. Until semantics are approved, affected activity is ineligible. |
+
+A change event minimally carries `eventId`, schema/policy version, opaque affected scope, monotonic scope generation, committed effective time and invalidation action. No title names or activity payloads belong on the event bus. Broad invalidations must be possible for an owner, viewer, relationship or source without enumerating private history to the consumer. Deletion uses durable tombstones independent of restored data; an older allow cannot supersede a newer denial. A newly authorized generation is distinct from the deleted one.
+
+Upstream must durably commit the denying state and an outbox/change record before acknowledging a reduction. Consumers process at least once, deduplicate by event ID, and compare generations so duplicates, delays and out-of-order messages cannot restore access or erase a separately authorized new generation. Jobs check current permission before computation and atomically before writing results; a worker started before revocation cannot publish stale output. Payloads contain references only and have a proposed maximum lifetime of 24 hours, including retries and dead letters.
+
+Maintain deletion lineage for **every social input that influenced an artifact**, including inputs affecting candidate exclusion, normalization or ordering, not just friends named in the final explanation. Key caches by viewer, purpose, permission epoch, input generations and ranking version. The owner must support reverse dependency invalidation or conservatively evict the complete affected viewer/scope. Untraceable derived data is ineligible for use.
+
+## Measurable invalidation and retention
+
+These limits require V2/V3 approval and reconciliation with SUR-28 budgets. They are maximums, not percentile-only targets. Let `t0` be the authoritative committed reduction/deletion time, before the initiating request is acknowledged; delayed receipt, retries and worker restarts never reset deadlines. For external provider revocation, separately measure detection delay under SUR-18; do not claim an end-to-end guarantee starting at provider action until that upstream bound is proven.
+
+| Obligation | Proposed bound and measurement |
+| --- | --- |
+| Stop new server exposure | Zero stale responses whose authorization fence is ordered after `t0`, on every API/cache/page. Record test fence ordering, not just wall-clock timing. Cleanup latency never permits continued serving. |
+| Fan-out and logical invalidation | Every registered consumer acknowledges denial/eviction within **60 seconds of `t0`**. Measure the slowest consumer and oldest unacknowledged event, including queue lag and retries. Missing receipts are failures. |
+| Already delivered app state | Visible online clients remove/recompute affected cards, order and explanations within **60 seconds of `t0`**. Use invalidation delivery plus a server-issued display lease capped at 60 seconds from authorization (including transport time). Hide expired social content even during outages; revalidate before rendering on tab resume, reconnect or navigation. Never extend a lease locally. |
+| Materialized social inputs and results | Prefer request memory only. If approved, viewer-scoped internal caches have a hard **5-minute TTL from creation**, never renewed by reads; every hit still revalidates. Purge revoked entries within 60 seconds, even when TTL is longer. No durable social feature store. |
+| Other live copies and processors | Purge/recompute revoked lineage, queued work and any permitted temporary copies within **24 hours of `t0`**, or a stricter source obligation. Retain only the minimal denial ledger below. Track every sink receipt; unresolved processor capability blocks launch. |
+| Diagnostics | Inherit foundation/SUR-18 **at most 7 days**, shortest approved window preferred. Never retain social payloads to debug revocation. Accidental identifying data triggers scoped erasure and incident handling, not ordinary expiry alone. |
+| Backups and denial ledger | Exclude ephemeral social caches/results from backups. For any approved unavoidable copy, inherit the rolling **at most 7-day backup window after live erasure** (thus at most 8 days after `t0` with the 24-hour cleanup bound). Keep the minimal denial ledger through the last affected job/backup/export lifetime plus one day, then purge. No fixed expiry while a replay source still exists. |
+
+Use `private, no-store` for social responses; prohibit CDN/shared caches, service-worker persistence, local storage, downloadable social result exports and notification copies in this baseline. Browser memory is viewer-scoped and cleared on logout/account switch. Human memory, screenshots and copies already taken by a recipient cannot be recalled; disclose that limitation without using it to excuse stale app-controlled copies. A frozen/offline client cannot receive a push; its display lease expires and it must hide/revalidate before the app renders again.
+
+Each consumer owner must register its stores, queues, replicas, processors, authorization boundary, dependency index, retention setting, receipt and test with SUR-29. Discovery owns rankings/explanations and server/client caches under [SUR-56](https://linear.app/lb-sandbox/issue/SUR-56); telemetry owns diagnostics and approved aggregates under [SUR-57](https://linear.app/lb-sandbox/issue/SUR-57); foundation/streaming owners retain authority over source deletion, backups and restoration. Role assignments are proposed until named owners accept V4.
+
+On a stream gap, unknown schema, lost checkpoint or unavailable authority, disable social use for the affected scope immediately; disable globally if the scope is unknown. Reconcile a fresh authoritative snapshot and replay denial records before re-enabling. Alert on missing receipts or any 60-second/24-hour breach, stop social serving for the affected scope and retain only minimal incident evidence. An actual unauthorized exposure blocks release regardless of average latency. Restore behind access denial; replay current account/relationship/source tombstones and purge stale generations before workers or traffic resume. No restore may recreate a grant.
+
+## Telemetry and downstream responsibility
+
+[SUR-57](https://linear.app/lb-sandbox/issue/SUR-57) may measure bounded operational counters such as authorization unavailable, invalidation backlog, lag, completion and failure, with environment/service/version/outcome dimensions only. Never emit titles/title IDs, publication/owner/viewer IDs, friend pairs/counts, permission receipts, recommendation payloads, raw URLs, exact activity times or free text into logs, traces, analytics, crash reports or support exports. Redaction must apply before SDK/processor ingestion, including errors. Restricted deletion receipts may contain opaque scope references and event IDs for reconciliation; they are personal operational records, not analytics dimensions, and follow the ledger lifecycle.
+
+Social/non-social funnel segmentation can itself reveal activity. Per-user or per-title social-source events and linkable aggregates remain disabled until SUR-57 and privacy reviewers approve a separate minimized schema, consent/basis, cohort suppression rule, purpose, processor inventory and numeric retention/deletion limits under V3. No anonymous-label or aggregation exception permits retaining reconstructable friend activity. Any approved derived telemetry must carry internal deletable lineage or a reviewed demonstration that it is irreversibly non-identifying; inability to revoke a linkable contribution blocks its collection. Revocation includes processor exports, dashboards and recomputation of linkable aggregates. Generic discovery monitoring can proceed under its own approved policy without these social fields.
+
+## Readiness, decisions and launch gate
+
+Evidence snapshot, 2026-10-30: this checkout at `9430566` contains foundation planning documents only. SUR-18 has a draft policy, SUR-26 reports missing implementation/evidence, and SUR-28/29/39/55/56/57/58 are In Progress in Linear. Issue status is not interface readiness. No implemented authoritative sharing API, ordered revocation interface, registered discovery consumer or passing integration evidence was verified in this repository. Implementation in other repositories must be supplied as evidence, not assumed absent globally or assumed ready.
+
+All decisions below are **open**. Logan coordinates named reviewer/implementer appointments; this does not confer privacy/security approval authority. Each decision must record reviewer and domain, date, exact contract revision, accepted values or changes with rationale, interface/schema revision, linked test evidence, named owner/issue and remaining blockers. A merged document or issue completion alone is not sign-off.
+
+| Gate | Missing readiness / required decision | Required owners and evidence |
+| --- | --- | --- |
+| V1 Visibility and signals | Confirm discovery-purpose consent, eligible relationship/audience, hide/block precedence, pause/history/reconnect semantics, signal enum and explanation projection | Product, privacy and upstream sharing/relationship owners; SUR-28/29/39 plus account D3/D4. Versioned interface and behavior matrix, including absent permission. |
+| V2 Revocation protocol and budgets | Confirm response fencing, source lineage, durable change stream, replay/gaps, 60-second propagation/client lease and 24-hour purge capability | Upstream, discovery and operations/security owners; SUR-55/56 coordinated with SUR-28. Protocol review and timed failure/race evidence. |
+| V3 Policy and downstream copies | Approve social purpose, minimal fields, retention, processors, backup/ledger rules and any social-source telemetry; reconcile source obligations | Qualified privacy/legal, streaming, telemetry and operations reviewers; SUR-18/SUR-26/SUR-57 and foundation Q5–Q7. Approved policy and inventory; provider/source conflicts resolved. |
+| V4 Consumer readiness | Register actual APIs, ranking jobs, caches, clients and telemetry sinks; assign named primary/backup for invalidation and incidents | SUR-29/SUR-56/SUR-57 owners. Inventory, acknowledgements, kill switch, reconciliation and restore drill evidence. |
+| V5 Release acceptance | Accepted V1–V4 and passing discovery-specific tests; no unresolved exposure defects | Named product, privacy/security, QA and operations release reviewers under foundation Q4; [SUR-58](https://linear.app/lb-sandbox/issue/SUR-58) records approval against the release commit/configuration. |
+
+Social discovery remains **disabled by default** until all five gates are accepted and tested. Non-social discovery can use its independently approved inputs while these blockers remain. No feature flag, gradual rollout, source-policy approval or feed approval substitutes for this consumer-specific gate. Changes to purposes, fields, audiences, processors or protocol reopen the relevant decisions.
+
+## Required acceptance evidence
+
+The following are implementation test specifications, not executed tests. SUR-56 owns consumer coverage; SUR-58 consolidates results and references SUR-26 source-deletion evidence without duplicating streaming tests. Record fixture/version, environment, release commit/configuration, observed fence ordering, maximum elapsed times, sink receipts and reviewer for each case. Use synthetic activity; do not put real history in test artifacts.
+
+| ID | Scenario | Required result |
+| --- | --- | --- |
+| SD1 | Two viewers with different grants; anonymous/restricted viewer; explicit share without discovery purpose; forged viewer/receipt/cursor | Only current authorized projection is usable. No cross-viewer cache reuse, existence disclosure or inferred permission. |
+| SD2 | Add/change private activity while holding authorized/non-social inputs and seed fixed | Identical candidates, rank, tie-breaks, counts, explanations, pagination and client metadata; inspect feature inputs and telemetry, not just rendered cards. |
+| SD3 | Missing grants, empty shared set, authority timeout, unsupported policy, stale/partial batch | Non-social discovery remains usable; no stale social fallback or private details in errors/logs. |
+| SD4 | Revoke/hide/narrow audience/remove friend/block/delete activity or either account during candidate fetch, scoring, cache hit and response publication | Fence prevents every post-commit stale authorization; all dependencies including non-winning inputs invalidate. Timed client clearing and every consumer receipt meet the 60-second maximum. |
+| SD5 | Edit/correct a publication; remove one source from a combined item; disconnect/withdraw import consent | Old versions/source influence disappear; independently permitted contributions survive only after recomputation. No provenance leak. |
+| SD6 | Duplicate/reorder/drop events; outage, checkpoint loss and replay; old queued/running/retried/dead-letter jobs; reconnect/refriend | No resurrection or implicit historical share; uncertain scope falls back; new generations survive old cleanup. Reconciliation is required before re-enable. |
+| SD7 | Warm caches, multiple tabs, account switch, offline/frozen client, back navigation and expired display lease | No account crossover or persistent social cache; hide expired content before resumed rendering; online clearing meets the maximum. |
+| SD8 | Advance clocks through TTL/purge/log/backup/ledger limits; simulate processor failure and restore a pre-revocation backup | All registered copies and receipts satisfy limits; failure never reports deletion complete; restored jobs/data remain denied until reconciliation. |
+| SD9 | Inspect SDK payloads, logs/traces, metrics labels, crash reports, dashboards and exports during success/error/revocation | No prohibited social signals; only approved operational data. Any later approved linkable telemetry passes deletion/recomputation tests. |
+| SD10 | Representative maximum supported friend fan-out/data size, concurrent reads and a consumer outage | Zero authorization leaks, maximum lag/cleanup within approved limits, correct alerts and kill switch; approved capacity and sample sizes recorded before the run, not inferred from average latency. |
+
+Acceptance tracking: visibility enforcement/fallback, minimal signals, revocation protocol, measurable budgets, retention and downstream responsibilities are proposed here. **Agreement, upstream readiness and launch acceptance remain pending V1–V5.** No social launch or completed SUR-55 agreement is asserted by this document.
