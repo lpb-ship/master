@@ -65,7 +65,7 @@ def main():
             sql(f"SET ROLE app_auth_service; INSERT INTO app_private.sessions(token_hash, account_id, expires_at) VALUES ('{'a'*64}', '{alice}', statement_timestamp() + interval '1 hour'), ('{'b'*64}', '{bob}', statement_timestamp() + interval '1 hour');")
             migrate()
             migrate()
-            check(sql('SELECT count(*) FROM app_migrations.history') == '2', 'Migration replay')
+            check(sql('SELECT count(*) FROM app_migrations.history') == str(len(list((ROOT / 'supabase/migrations').glob('*.sql')))), 'Migration replay')
             check(sql(f"SELECT display_name IS NULL AND version = 0 FROM app_private.profiles WHERE account_id = '{alice}'") == 't', 'Upgrade preserves shell')
             print('PASS clean baseline, upgrade with existing rows, and migration replay')
 
@@ -139,11 +139,11 @@ def main():
             check('was modified' in migrate('--directory', str(modified), ok=False), 'Checksum drift rejected')
             shutil.rmtree(modified)
             shutil.copytree(ROOT / 'supabase/migrations', modified)
-            (modified / '20261030000300_failure.sql').write_text('CREATE TABLE public.must_rollback(id int); SELECT 1/0;')
+            (modified / '20981231000000_failure.sql').write_text('CREATE TABLE public.must_rollback(id int); SELECT 1/0;')
             migrate('--directory', str(modified), ok=False)
             check(sql("SELECT to_regclass('public.must_rollback') IS NULL") == 't', 'Failed migration DDL rolled back')
-            check(sql('SELECT count(*) FROM app_migrations.history') == '2', 'Failed migration not recorded')
-            (modified / '20261030000300_failure.sql').unlink()
+            check(sql('SELECT count(*) FROM app_migrations.history') == str(len(list((ROOT / 'supabase/migrations').glob('*.sql')))), 'Failed migration not recorded')
+            (modified / '20981231000000_failure.sql').unlink()
             (modified / '20261030000150_late.sql').write_text('SELECT 1;')
             check('out of order' in migrate('--directory', str(modified), ok=False), 'Out-of-order migration rejected')
             sql("INSERT INTO app_migrations.history(version, checksum) VALUES ('20990101000000', 'unknown')")
@@ -151,7 +151,7 @@ def main():
             sql("DELETE FROM app_migrations.history WHERE version = '20990101000000'")
             sql('CREATE DATABASE clean', db='postgres')
             migrate(db='clean')
-            check(sql('SELECT count(*) FROM app_migrations.history', db='clean') == '2', 'All migrations from empty')
+            check(sql('SELECT count(*) FROM app_migrations.history', db='clean') == str(len(list((ROOT / 'supabase/migrations').glob('*.sql')))), 'All migrations from empty')
             print('PASS immutable history, failed migration rollback, and full clean initialization')
 
             # A custom-format logical backup contains the application and migration ledger.

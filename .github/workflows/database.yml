@@ -22,3 +22,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 tests/database/verify.py
+      - run: python3 tests/database/watchlists.py
