@@ -1,0 +1,1419 @@
+{
+  "version": 1,
+  "status": "proposed; pending SUR-17 contract and targets",
+  "catalogNamespace": "fixture-catalog",
+  "cases": [
+    {
+      "name": "verified-movie",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ]
+    },
+    {
+      "name": "unique-title-and-year",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "  ORBIT  ",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "exact_title_year",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "exact_title_year",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ]
+    },
+    {
+      "name": "verified-episode",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "episode",
+          "title": "Beacon",
+          "releaseYear": null,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "episode",
+                "id": "episode-beacon-1-2",
+                "seriesId": "series-beacon",
+                "seasonNumber": 1,
+                "episodeNumber": 2
+              }
+            ]
+          },
+          "seasonNumber": 1,
+          "episodeNumber": 2
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "episode",
+            "id": "episode-beacon-1-2",
+            "seriesId": "series-beacon",
+            "seasonNumber": 1,
+            "episodeNumber": 2
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ambiguous-remake",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": null,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "title_only",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              },
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-1990"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "ambiguous",
+          "reason": "insufficient_identity",
+          "canonical": null,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "candidateRefs": [
+            {
+              "namespace": "fixture-catalog",
+              "kind": "movie",
+              "id": "movie-orbit-2020"
+            },
+            {
+              "namespace": "fixture-catalog",
+              "kind": "movie",
+              "id": "movie-orbit-1990"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "single-title-without-year",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": null,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "title_only",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "ambiguous",
+          "reason": "insufficient_identity",
+          "canonical": null,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "candidateRefs": [
+            {
+              "namespace": "fixture-catalog",
+              "kind": "movie",
+              "id": "movie-orbit-2020"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unmatched-title",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Unknown synthetic title",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "exact_title_year",
+            "candidates": []
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "unmatched",
+          "reason": "no_candidate",
+          "canonical": null,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ]
+    },
+    {
+      "name": "episode-without-coordinates",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "episode",
+          "title": "Beacon",
+          "releaseYear": null,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "series_only",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "episode",
+                "id": "episode-beacon-1-2",
+                "seriesId": "series-beacon",
+                "seasonNumber": 1,
+                "episodeNumber": 2
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "ambiguous",
+          "reason": "insufficient_episode_identity",
+          "canonical": null,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "candidateRefs": [
+            {
+              "namespace": "fixture-catalog",
+              "kind": "episode",
+              "id": "episode-beacon-1-2",
+              "seriesId": "series-beacon",
+              "seasonNumber": 1,
+              "episodeNumber": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "conflicting-episode-coordinates",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "episode",
+          "title": "Beacon",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "episode",
+                "id": "episode-beacon-1-2",
+                "seriesId": "series-beacon",
+                "seasonNumber": 1,
+                "episodeNumber": 2
+              }
+            ]
+          },
+          "seasonNumber": 1,
+          "episodeNumber": 3
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "ambiguous",
+          "reason": "conflicting_identity",
+          "canonical": null,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "candidateRefs": [
+            {
+              "namespace": "fixture-catalog",
+              "kind": "episode",
+              "id": "episode-beacon-1-2",
+              "seriesId": "series-beacon",
+              "seasonNumber": 1,
+              "episodeNumber": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "missing-timestamp",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": null,
+            "precision": "unknown"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": null,
+            "precision": "unknown"
+          }
+        }
+      ]
+    },
+    {
+      "name": "date-only-repeat-watches",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01",
+            "precision": "date"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        },
+        {
+          "sourceId": "source-2",
+          "observationId": "import-1:row-2",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-2",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01",
+            "precision": "date"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01",
+            "precision": "date"
+          }
+        },
+        {
+          "eventKey": "event-2",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-2"
+          ],
+          "observationIds": [
+            "import-1:row-2"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01",
+            "precision": "date"
+          }
+        }
+      ]
+    },
+    {
+      "name": "invalid-timestamp",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-02-30T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": null,
+            "precision": "unknown"
+          },
+          "timestampReason": "invalid_timestamp"
+        }
+      ]
+    },
+    {
+      "name": "offset-normalization",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T22:00:00+02:00",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ]
+    },
+    {
+      "name": "repeat-watch",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        },
+        {
+          "sourceId": "source-2",
+          "observationId": "import-1:row-2",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-2",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-02T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        },
+        {
+          "eventKey": "event-2",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-2"
+          ],
+          "observationIds": [
+            "import-1:row-2"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-02T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ]
+    },
+    {
+      "name": "overlapping-import-and-retry",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        },
+        {
+          "sourceId": "source-1",
+          "observationId": "import-2:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        },
+        {
+          "sourceId": "source-1",
+          "observationId": "import-2:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1",
+            "import-2:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ]
+    },
+    {
+      "name": "independent-identical-rows-without-occurrence-id",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": null,
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": null,
+            "precision": "unknown"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        },
+        {
+          "sourceId": "source-2",
+          "observationId": "import-1:row-2",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": null,
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": null,
+            "precision": "unknown"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": null,
+            "precision": "unknown"
+          }
+        },
+        {
+          "eventKey": "event-2",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-2"
+          ],
+          "observationIds": [
+            "import-1:row-2"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": null,
+            "precision": "unknown"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cross-provider-overlap-is-not-proof",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        },
+        {
+          "sourceId": "source-2",
+          "observationId": "import-2:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-b",
+          "providerProfileId": "profile-b",
+          "provider": "provider-b",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        },
+        {
+          "eventKey": "event-2",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-2"
+          ],
+          "observationIds": [
+            "import-2:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ],
+      "expectedPossibleOverlapGroups": [
+        [
+          "event-1",
+          "event-2"
+        ]
+      ]
+    },
+    {
+      "name": "different-owners-never-merge",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-1:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        },
+        {
+          "sourceId": "source-2",
+          "observationId": "import-2:row-1",
+          "appUserId": "user-2",
+          "connectionId": "connection-other",
+          "providerProfileId": "profile-other",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        },
+        {
+          "eventKey": "event-2",
+          "appUserId": "user-2",
+          "sourceIds": [
+            "source-2"
+          ],
+          "observationIds": [
+            "import-2:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ],
+      "expectedPossibleOverlapGroups": []
+    },
+    {
+      "name": "reprocess-resolves-identity-without-changing-event-id",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-2:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "persisted-event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1",
+            "import-2:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ],
+      "existingEvents": [
+        {
+          "eventKey": "persisted-event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "ambiguous",
+          "reason": "insufficient_identity",
+          "canonical": null,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "candidateRefs": [
+            {
+              "namespace": "fixture-catalog",
+              "kind": "movie",
+              "id": "movie-orbit-2020"
+            },
+            {
+              "namespace": "fixture-catalog",
+              "kind": "movie",
+              "id": "movie-orbit-1990"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reprocess-keeps-matched-event-and-provenance",
+      "records": [
+        {
+          "sourceId": "source-1",
+          "observationId": "import-2:row-1",
+          "appUserId": "user-1",
+          "connectionId": "connection-a",
+          "providerProfileId": "profile-a",
+          "provider": "provider-a",
+          "providerOccurrenceId": "watch-1",
+          "kind": "movie",
+          "title": "Orbit",
+          "releaseYear": 2020,
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          },
+          "catalogEvidence": {
+            "method": "verified_mapping",
+            "candidates": [
+              {
+                "namespace": "fixture-catalog",
+                "kind": "movie",
+                "id": "movie-orbit-2020"
+              }
+            ]
+          }
+        }
+      ],
+      "expectedEvents": [
+        {
+          "eventKey": "persisted-event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1",
+            "import-2:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ],
+      "existingEvents": [
+        {
+          "eventKey": "persisted-event-1",
+          "appUserId": "user-1",
+          "sourceIds": [
+            "source-1"
+          ],
+          "observationIds": [
+            "import-1:row-1"
+          ],
+          "matchState": "matched",
+          "reason": "verified_mapping",
+          "canonical": {
+            "namespace": "fixture-catalog",
+            "kind": "movie",
+            "id": "movie-orbit-2020"
+          },
+          "watchedAt": {
+            "value": "2026-10-01T20:00:00Z",
+            "precision": "instant"
+          }
+        }
+      ]
+    }
+  ]
+}
