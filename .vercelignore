@@ -1,0 +1,8 @@
+.git
+.env*
+*.pem
+*.key
+node_modules
+.next
+tests
+docs
